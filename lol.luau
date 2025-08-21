@@ -10,7 +10,7 @@
 --   sec:ColorPicker("Trail Color","", Color3.fromRGB(140,64,215), function(c) print("Color", c) end)
 --   sec:Keybind("Parry Key","", Enum.KeyCode.E, function(held) print("Parry held:", held) end)
 --   sec:Textbox("Custom Value","Type here", function(text) print("Text:", text) end)
---   ui:Notify("Loaded", "Anerial UI initialized")
+--   ui:Notify("Loaded", "Anerial UI initialized") 
 --   -- You can minimize with the top-right button or call ui:SetMinimized(true)
 --   -- Destroy with ui:Destroy()
 
