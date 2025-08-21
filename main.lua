@@ -1,526 +1,996 @@
--- Enhanced UI Library with Functional Components
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+-- Anerial UI Library v1.0
+-- Created by v0rtexd & Lenny
+
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Create main UI structure
-local main_UI = Instance.new("ScreenGui")
-main_UI.Name = "Main UI"
-main_UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-main_UI.Parent = playerGui
+local Library = {}
+Library.__index = Library
 
-local minimized_ui = Instance.new("ScreenGui")
-minimized_ui.Name = "Minimized ui"
-minimized_ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-minimized_ui.Parent = main_UI
+-- Utility Functions
+local function createTween(object, info, properties)
+    return TweenService:Create(object, info, properties)
+end
 
--- Minimized UI components
-local cat_gif = Instance.new("ImageLabel")
-cat_gif.Name = "Cat gif"
-cat_gif.BackgroundColor3 = Color3.new(1, 1, 1)
-cat_gif.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
-cat_gif.Position = UDim2.new(0.463, 0, 0.0355, 0)
-cat_gif.BorderColor3 = Color3.new()
-cat_gif.BorderSizePixel = 0
-cat_gif.Size = UDim2.new(0, 20, 0, 20)
-cat_gif.Parent = minimized_ui
+local function getPlayerHeadshot()
+    local userId = player.UserId
+    return "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=420&height=420&format=png"
+end
 
-local minimized_ui_cro = Instance.new("Frame")
-minimized_ui_cro.Name = "Minimized ui cro"
-minimized_ui_cro.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
-minimized_ui_cro.Position = UDim2.new(0.459, 0, 0.0293, 0)
-minimized_ui_cro.BorderColor3 = Color3.new()
-minimized_ui_cro.BorderSizePixel = 0
-minimized_ui_cro.Size = UDim2.new(0, 120, 0, 31)
-minimized_ui_cro.Parent = minimized_ui
-
-local unminize_button = Instance.new("TextButton")
-unminize_button.Name = "Unminize button"
-unminize_button.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
-unminize_button.TextColor3 = Color3.new()
-unminize_button.BorderColor3 = Color3.new()
-unminize_button.Text = ""
-unminize_button.BackgroundColor3 = Color3.new(1, 1, 1)
-unminize_button.BackgroundTransparency = 1
-unminize_button.Position = UDim2.new(-0.0687, 0, 0, 0)
-unminize_button.BorderSizePixel = 0
-unminize_button.TextSize = 14
-unminize_button.Size = UDim2.new(0, 128, 0, 27)
-unminize_button.Parent = minimized_ui_cro
-
-local uICorner = Instance.new("UICorner")
-uICorner.CornerRadius = UDim.new(0, 4)
-uICorner.Parent = minimized_ui_cro
-
-local uIStroke = Instance.new("UIStroke")
-uIStroke.Color = Color3.new(0.0667, 0.0667, 0.0824)
-uIStroke.Parent = minimized_ui_cro
-
-local anerial_cc = Instance.new("TextLabel")
-anerial_cc.Name = "Anerial.cc"
-anerial_cc.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-anerial_cc.TextColor3 = Color3.new(1, 1, 1)
-anerial_cc.Text = "Anerial.cc"
-anerial_cc.BackgroundColor3 = Color3.new(1, 1, 1)
-anerial_cc.BackgroundTransparency = 1
-anerial_cc.Position = UDim2.new(0.358, 0, 0.133, 0)
-anerial_cc.BorderSizePixel = 0
-anerial_cc.BorderColor3 = Color3.new()
-anerial_cc.TextSize = 13
-anerial_cc.Size = UDim2.new(0, 69, 0, 21)
-anerial_cc.Parent = minimized_ui_cro
-
-local uIGradient = Instance.new("UIGradient")
-uIGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-    ColorSequenceKeypoint.new(1, Color3.new(0.392, 0.392, 0.392))
-})
-uIGradient.Parent = anerial_cc
-
-local frame = Instance.new("Frame")
-frame.BackgroundColor3 = Color3.new(0.176, 0.176, 0.224)
-frame.Position = UDim2.new(0.298, 0, 0.133, 0)
-frame.BorderColor3 = Color3.new()
-frame.BorderSizePixel = 0
-frame.Size = UDim2.new(0, 1, 0, 23)
-frame.Parent = minimized_ui_cro
-
--- Main UI Frame
-local main = Instance.new("Frame")
-main.Name = "main"
-main.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
-main.Position = UDim2.new(0.227, 0, 0.198, 0)
-main.BorderColor3 = Color3.new()
-main.BorderSizePixel = 0
-main.Size = UDim2.new(0, 813, 0, 494)
-main.Parent = main_UI
-
--- UI State Variables
-local isMinimized = false
-
--- Animation tweens
-local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
--- Add all your existing UI elements here (keeping your original structure)
--- I'll add the functional components below
-
--- Functional Slider Component
-local function createSlider(parent, name, minValue, maxValue, defaultValue, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Name = name .. "_slider_frame"
-    sliderFrame.BackgroundColor3 = Color3.new(0.0902, 0.0863, 0.125)
-    sliderFrame.BorderSizePixel = 0
-    sliderFrame.Size = UDim2.new(0, 234, 0, 7)
-    sliderFrame.Parent = parent
+-- Main Library Constructor
+function Library:CreateWindow(title, description)
+    local window = {}
+    window.tabs = {}
+    window.currentTab = nil
     
-    local sliderCorner = Instance.new("UICorner")
-    sliderCorner.CornerRadius = UDim.new(0, 3)
-    sliderCorner.Parent = sliderFrame
+    -- Create main UI
+    local main_UI = Instance.new("ScreenGui")
+    main_UI.Name = "Anerial_UI"
+    main_UI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    main_UI.Parent = playerGui
     
-    local fillFrame = Instance.new("Frame")
-    fillFrame.Name = name .. "_fill"
-    fillFrame.BackgroundColor3 = Color3.new(0.475, 0.451, 0.918)
-    fillFrame.BorderSizePixel = 0
-    fillFrame.Size = UDim2.new(0.5, 0, 1, 0) -- Start at 50%
-    fillFrame.Parent = sliderFrame
+    -- Create minimized UI
+    local minimized_ui = Instance.new("ScreenGui")
+    minimized_ui.Name = "Minimized_UI"
+    minimized_ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    minimized_ui.Parent = main_UI
+    minimized_ui.Enabled = false
     
-    local fillCorner = Instance.new("UICorner")
-    fillCorner.CornerRadius = UDim.new(0, 3)
-    fillCorner.Parent = fillFrame
+    -- Minimized UI Components
+    local minimized_frame = Instance.new("Frame")
+    minimized_frame.Name = "MinimizedFrame"
+    minimized_frame.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
+    minimized_frame.Position = UDim2.new(0.459, 0, 0.0293, 0)
+    minimized_frame.Size = UDim2.new(0, 120, 0, 31)
+    minimized_frame.Parent = minimized_ui
     
-    local fillGradient = Instance.new("UIGradient")
-    fillGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-        ColorSequenceKeypoint.new(1, Color3.new(0.314, 0.314, 0.314))
-    })
-    fillGradient.Parent = fillFrame
+    local minimized_corner = Instance.new("UICorner")
+    minimized_corner.CornerRadius = UDim.new(0, 4)
+    minimized_corner.Parent = minimized_frame
     
-    local sliderButton = Instance.new("Frame")
-    sliderButton.Name = name .. "_button"
-    sliderButton.BackgroundColor3 = Color3.new(1, 1, 1)
-    sliderButton.Position = UDim2.new(0.5, -5, -0.5, 0)
-    sliderButton.BorderSizePixel = 0
-    sliderButton.Size = UDim2.new(0, 11, 0, 11)
-    sliderButton.Parent = fillFrame
+    local minimized_stroke = Instance.new("UIStroke")
+    minimized_stroke.Color = Color3.new(0.0667, 0.0667, 0.0824)
+    minimized_stroke.Parent = minimized_frame
     
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 3)
-    buttonCorner.Parent = sliderButton
+    local minimized_logo = Instance.new("TextLabel")
+    minimized_logo.Name = "Logo"
+    minimized_logo.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+    minimized_logo.TextColor3 = Color3.new(1, 1, 1)
+    minimized_logo.Text = title or "Anerial.cc"
+    minimized_logo.BackgroundTransparency = 1
+    minimized_logo.Position = UDim2.new(0.1, 0, 0.133, 0)
+    minimized_logo.Size = UDim2.new(0, 69, 0, 21)
+    minimized_logo.TextSize = 13
+    minimized_logo.Parent = minimized_frame
     
-    local clickDetector = Instance.new("TextButton")
-    clickDetector.Name = name .. "_detector"
-    clickDetector.Text = ""
-    clickDetector.BackgroundTransparency = 1
-    clickDetector.Size = UDim2.new(1, 10, 1, 10)
-    clickDetector.Position = UDim2.new(0, -5, 0, -5)
-    clickDetector.Parent = sliderButton
+    local unminimize_button = Instance.new("TextButton")
+    unminimize_button.Name = "UnminimizeButton"
+    unminimize_button.Text = ""
+    unminimize_button.BackgroundTransparency = 1
+    unminimize_button.Size = UDim2.new(1, 0, 1, 0)
+    unminimize_button.Parent = minimized_frame
     
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Name = name .. "_value"
-    valueLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-    valueLabel.TextColor3 = Color3.new(1, 1, 1)
-    valueLabel.Text = tostring(defaultValue)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.Position = UDim2.new(1.1, 0, -2, 0)
-    valueLabel.Size = UDim2.new(0, 50, 0, 20)
-    valueLabel.TextSize = 14
-    valueLabel.Parent = sliderFrame
+    -- Main window
+    local main = Instance.new("Frame")
+    main.Name = "MainWindow"
+    main.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
+    main.Position = UDim2.new(0.227, 0, 0.198, 0)
+    main.Size = UDim2.new(0, 813, 0, 494)
+    main.Parent = main_UI
     
-    -- Slider functionality
+    local main_corner = Instance.new("UICorner")
+    main_corner.Parent = main
+    
+    local main_stroke = Instance.new("UIStroke")
+    main_stroke.Color = Color3.new(0.0667, 0.0667, 0.0824)
+    main_stroke.Parent = main
+    
+    -- Title
+    local logo = Instance.new("TextLabel")
+    logo.Name = "Logo"
+    logo.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.Bold)
+    logo.TextColor3 = Color3.new(1, 1, 1)
+    logo.Text = title or "Anerial.cc"
+    logo.BackgroundTransparency = 1
+    logo.Position = UDim2.new(0.0382, 0, 0.0105, 0)
+    logo.Size = UDim2.new(0, 170, 0, 45)
+    logo.TextSize = 33
+    logo.Parent = main
+    
+    -- Credits
+    local credits = Instance.new("TextLabel")
+    credits.Name = "Credits"
+    credits.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+    credits.TextColor3 = Color3.new(0.42, 0.42, 0.424)
+    credits.Text = "v0rtexd & Lenny"
+    credits.BackgroundTransparency = 1
+    credits.Position = UDim2.new(0.075, 0, 0.0951, 0)
+    credits.Size = UDim2.new(0, 108, 0, 18)
+    credits.TextSize = 14
+    credits.Parent = main
+    
+    -- Close button
+    local close_frame = Instance.new("Frame")
+    close_frame.Name = "CloseFrame"
+    close_frame.BackgroundTransparency = 1
+    close_frame.Position = UDim2.new(0.958, 0, 0.048, 0)
+    close_frame.Size = UDim2.new(0, 18, 0, 20)
+    close_frame.Parent = main
+    
+    local close_button = Instance.new("TextButton")
+    close_button.Name = "CloseButton"
+    close_button.Text = ""
+    close_button.BackgroundTransparency = 1
+    close_button.Size = UDim2.new(1, 0, 1, 0)
+    close_button.Parent = close_frame
+    
+    local close_icon = Instance.new("ImageLabel")
+    close_icon.Name = "CloseIcon"
+    close_icon.ImageColor3 = Color3.new(0.365, 0.365, 0.365)
+    close_icon.Image = "rbxassetid://10747384394"
+    close_icon.BackgroundTransparency = 1
+    close_icon.Size = UDim2.new(1, 0, 1, 0)
+    close_icon.Parent = close_frame
+    
+    -- Minimize button
+    local minimize_frame = Instance.new("Frame")
+    minimize_frame.Name = "MinimizeFrame"
+    minimize_frame.BackgroundTransparency = 1
+    minimize_frame.Position = UDim2.new(0.911, 0, 0.0486, 0)
+    minimize_frame.Size = UDim2.new(0, 15, 0, 15)
+    minimize_frame.Parent = main
+    
+    local minimize_button = Instance.new("TextButton")
+    minimize_button.Name = "MinimizeButton"
+    minimize_button.Text = ""
+    minimize_button.BackgroundTransparency = 1
+    minimize_button.Size = UDim2.new(1, 0, 1, 0)
+    minimize_button.Parent = minimize_frame
+    
+    local minimize_icon = Instance.new("ImageLabel")
+    minimize_icon.Name = "MinimizeIcon"
+    minimize_icon.ImageColor3 = Color3.new(0.365, 0.365, 0.365)
+    minimize_icon.Image = "rbxassetid://10734896206"
+    minimize_icon.BackgroundTransparency = 1
+    minimize_icon.Size = UDim2.new(1, 0, 1, 0)
+    minimize_icon.Parent = minimize_frame
+    
+    -- Search bar
+    local search_bar = Instance.new("Frame")
+    search_bar.Name = "SearchBar"
+    search_bar.BackgroundColor3 = Color3.new(0.0353, 0.0353, 0.051)
+    search_bar.Position = UDim2.new(0.329, 0, 0.0483, 0)
+    search_bar.Size = UDim2.new(0, 115, 0, 27)
+    search_bar.Parent = main
+    
+    local search_corner = Instance.new("UICorner")
+    search_corner.CornerRadius = UDim.new(0, 9)
+    search_corner.Parent = search_bar
+    
+    local search_stroke = Instance.new("UIStroke")
+    search_stroke.Color = Color3.new(0.0667, 0.0667, 0.098)
+    search_stroke.Parent = search_bar
+    
+    local search_textbox = Instance.new("TextBox")
+    search_textbox.Name = "SearchTextBox"
+    search_textbox.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+    search_textbox.TextColor3 = Color3.new(0.392, 0.392, 0.392)
+    search_textbox.Text = "Search..."
+    search_textbox.BackgroundTransparency = 1
+    search_textbox.Position = UDim2.new(0.05, 0, 0, 0)
+    search_textbox.Size = UDim2.new(0.75, 0, 1, 0)
+    search_textbox.TextSize = 14
+    search_textbox.Parent = search_bar
+    
+    local search_icon = Instance.new("ImageLabel")
+    search_icon.Name = "SearchIcon"
+    search_icon.ImageColor3 = Color3.new(0.455, 0.431, 0.863)
+    search_icon.Image = "rbxassetid://10734943674"
+    search_icon.BackgroundTransparency = 1
+    search_icon.Position = UDim2.new(0.78, 0, 0.24, 0)
+    search_icon.Size = UDim2.new(0, 13, 0, 13)
+    search_icon.Parent = search_bar
+    
+    -- Divider
+    local divider = Instance.new("Frame")
+    divider.Name = "Divider"
+    divider.BackgroundColor3 = Color3.new(0.0784, 0.0784, 0.0784)
+    divider.Position = UDim2.new(0.311, 0, 0.133, 0)
+    divider.Size = UDim2.new(0, 560, 0, 1)
+    divider.BorderSizePixel = 0
+    divider.Parent = main
+    
+    local vertical_divider = Instance.new("Frame")
+    vertical_divider.Name = "VerticalDivider"
+    vertical_divider.BackgroundColor3 = Color3.new(0.0902, 0.0902, 0.114)
+    vertical_divider.Position = UDim2.new(0.309, 0, 0, 0)
+    vertical_divider.Size = UDim2.new(0, 1, 0, 494)
+    vertical_divider.BorderSizePixel = 0
+    vertical_divider.Parent = main
+    
+    -- Tabs system
+    local tabs_frame = Instance.new("Frame")
+    tabs_frame.Name = "TabsFrame"
+    tabs_frame.BackgroundTransparency = 1
+    tabs_frame.Position = UDim2.new(0.00971, 0, 0.131, 0)
+    tabs_frame.Size = UDim2.new(0, 211, 0, 387)
+    tabs_frame.Parent = main
+    
+    -- Content frame
+    local content_frame = Instance.new("Frame")
+    content_frame.Name = "ContentFrame"
+    content_frame.BackgroundTransparency = 1
+    content_frame.Position = UDim2.new(0.328, 0, 0.174, 0)
+    content_frame.Size = UDim2.new(0, 540, 0, 380)
+    content_frame.Parent = main
+    
+    -- Avatar preview
+    local avatar_frame = Instance.new("Frame")
+    avatar_frame.Name = "AvatarFrame"
+    avatar_frame.BackgroundColor3 = Color3.new(0.0902, 0.0902, 0.114)
+    avatar_frame.Position = UDim2.new(0.0394, 0, 0.891, 0)
+    avatar_frame.Size = UDim2.new(0, 190, 0, 1)
+    avatar_frame.BorderSizePixel = 0
+    avatar_frame.Parent = main
+    
+    local player_avatar = Instance.new("ImageLabel")
+    player_avatar.Name = "PlayerAvatar"
+    player_avatar.Image = "rbxassetid://81331039069318" -- Will be replaced with actual headshot
+    player_avatar.BackgroundTransparency = 1
+    player_avatar.Position = UDim2.new(-0.0541, 0, 7.65, 0)
+    player_avatar.Size = UDim2.new(0, 40, 0, 40)
+    player_avatar.Parent = avatar_frame
+    
+    local avatar_corner = Instance.new("UICorner")
+    avatar_corner.CornerRadius = UDim.new(1, 10)
+    avatar_corner.Parent = player_avatar
+    
+    local welcome_label = Instance.new("TextLabel")
+    welcome_label.Name = "WelcomeLabel"
+    welcome_label.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+    welcome_label.TextColor3 = Color3.new(1, 1, 1)
+    welcome_label.Text = "Welcome " .. player.DisplayName
+    welcome_label.BackgroundTransparency = 1
+    welcome_label.Position = UDim2.new(0.416, 0, 18, 0)
+    welcome_label.Size = UDim2.new(0, 120, 0, 19)
+    welcome_label.TextSize = 16
+    welcome_label.Parent = avatar_frame
+    
+    -- Window functions
+    local minimized = false
+    
+    local function toggleMinimize()
+        minimized = not minimized
+        if minimized then
+            main.Visible = false
+            minimized_ui.Enabled = true
+        else
+            main.Visible = true
+            minimized_ui.Enabled = false
+        end
+    end
+    
+    -- Connect events
+    close_button.MouseButton1Click:Connect(function()
+        main_UI:Destroy()
+    end)
+    
+    minimize_button.MouseButton1Click:Connect(toggleMinimize)
+    unminimize_button.MouseButton1Click:Connect(toggleMinimize)
+    
+    -- Dragging functionality
     local dragging = false
-    local currentValue = defaultValue or ((minValue + maxValue) / 2)
+    local dragStart = nil
+    local startPos = nil
     
-    local function updateSlider(value)
-        currentValue = math.clamp(value, minValue, maxValue)
-        local percentage = (currentValue - minValue) / (maxValue - minValue)
-        
-        fillFrame.Size = UDim2.new(percentage, 0, 1, 0)
-        valueLabel.Text = tostring(math.floor(currentValue))
-        
-        if callback then
-            callback(currentValue)
-        end
+    local function updateInput(input)
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
     
-    local function moveSlider(input)
-        local relativeX = input.Position.X - sliderFrame.AbsolutePosition.X
-        local percentage = math.clamp(relativeX / sliderFrame.AbsoluteSize.X, 0, 1)
-        local value = minValue + (percentage * (maxValue - minValue))
-        updateSlider(value)
-    end
-    
-    clickDetector.MouseButton1Down:Connect(function()
-        dragging = true
-    end)
-    
-    sliderFrame.InputBegan:Connect(function(input)
+    main.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            moveSlider(input)
             dragging = true
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            moveSlider(input)
-        end
-    end)
-    
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-    
-    -- Initialize slider
-    updateSlider(currentValue)
-    
-    return {
-        Frame = sliderFrame,
-        GetValue = function() return currentValue end,
-        SetValue = function(value) updateSlider(value) end
-    }
-end
-
--- Functional Toggle Component
-local function createToggle(parent, name, defaultState, callback)
-    local toggleFrame = Instance.new("Frame")
-    toggleFrame.Name = name .. "_toggle"
-    toggleFrame.BackgroundColor3 = Color3.new(0.0902, 0.0863, 0.125)
-    toggleFrame.BorderSizePixel = 0
-    toggleFrame.Size = UDim2.new(0, 36, 0, 20)
-    toggleFrame.Parent = parent
-    
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 9)
-    toggleCorner.Parent = toggleFrame
-    
-    local switcherButton = Instance.new("Frame")
-    switcherButton.Name = name .. "_switcher"
-    switcherButton.BackgroundColor3 = Color3.new(1, 1, 1)
-    switcherButton.Position = UDim2.new(0.167, 0, 0.25, 0)
-    switcherButton.BorderSizePixel = 0
-    switcherButton.Size = UDim2.new(0, 10, 0, 10)
-    switcherButton.Parent = toggleFrame
-    
-    local switcherCorner = Instance.new("UICorner")
-    switcherCorner.Parent = switcherButton
-    
-    local clickButton = Instance.new("TextButton")
-    clickButton.Name = name .. "_click"
-    clickButton.Text = ""
-    clickButton.BackgroundTransparency = 1
-    clickButton.Size = UDim2.new(1, 0, 1, 0)
-    clickButton.Parent = toggleFrame
-    
-    local isEnabled = defaultState or false
-    
-    local function updateToggle(state)
-        isEnabled = state
-        local targetPos = isEnabled and UDim2.new(0.5, 0, 0.25, 0) or UDim2.new(0.167, 0, 0.25, 0)
-        local targetColor = isEnabled and Color3.new(0.475, 0.451, 0.918) or Color3.new(0.0902, 0.0863, 0.125)
-        
-        local posTween = TweenService:Create(switcherButton, tweenInfo, {Position = targetPos})
-        local colorTween = TweenService:Create(toggleFrame, tweenInfo, {BackgroundColor3 = targetColor})
-        
-        posTween:Play()
-        colorTween:Play()
-        
-        if callback then
-            callback(isEnabled)
-        end
-    end
-    
-    clickButton.MouseButton1Click:Connect(function()
-        updateToggle(not isEnabled)
-    end)
-    
-    -- Initialize toggle
-    updateToggle(isEnabled)
-    
-    return {
-        Frame = toggleFrame,
-        GetState = function() return isEnabled end,
-        SetState = function(state) updateToggle(state) end
-    }
-end
-
--- Functional Dropdown Component
-local function createDropdown(parent, name, options, defaultOption, callback)
-    local dropdownFrame = Instance.new("Frame")
-    dropdownFrame.Name = name .. "_dropdown"
-    dropdownFrame.BackgroundColor3 = Color3.new(0.0627, 0.0588, 0.0863)
-    dropdownFrame.BorderSizePixel = 0
-    dropdownFrame.Size = UDim2.new(0, 79, 0, 29)
-    dropdownFrame.Parent = parent
-    
-    local dropdownCorner = Instance.new("UICorner")
-    dropdownCorner.CornerRadius = UDim.new(0, 4)
-    dropdownCorner.Parent = dropdownFrame
-    
-    local dropdownStroke = Instance.new("UIStroke")
-    dropdownStroke.Color = Color3.new(0.0863, 0.0863, 0.0863)
-    dropdownStroke.Parent = dropdownFrame
-    
-    local selectedLabel = Instance.new("TextLabel")
-    selectedLabel.Name = name .. "_selected"
-    selectedLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-    selectedLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-    selectedLabel.Text = defaultOption or options[1] or "Select"
-    selectedLabel.BackgroundTransparency = 1
-    selectedLabel.Position = UDim2.new(0, 0, 0.07, 0)
-    selectedLabel.Size = UDim2.new(0, 57, 0, 24)
-    selectedLabel.TextSize = 12
-    selectedLabel.Parent = dropdownFrame
-    
-    local arrowIcon = Instance.new("ImageLabel")
-    arrowIcon.Name = name .. "_arrow"
-    arrowIcon.Image = "rbxassetid://10709790948"
-    arrowIcon.BackgroundTransparency = 1
-    arrowIcon.Position = UDim2.new(0.722, 0, 0.241, 0)
-    arrowIcon.Size = UDim2.new(0, 15, 0, 15)
-    arrowIcon.Parent = dropdownFrame
-    
-    local clickButton = Instance.new("TextButton")
-    clickButton.Name = name .. "_click"
-    clickButton.Text = ""
-    clickButton.BackgroundTransparency = 1
-    clickButton.Size = UDim2.new(1, 0, 1, 0)
-    clickButton.Parent = dropdownFrame
-    
-    local optionsList = Instance.new("Frame")
-    optionsList.Name = name .. "_options"
-    optionsList.BackgroundColor3 = Color3.new(0.0627, 0.0588, 0.0863)
-    optionsList.Position = UDim2.new(0, 0, 1.1, 0)
-    optionsList.BorderSizePixel = 0
-    optionsList.Size = UDim2.new(1, 0, 0, #options * 25)
-    optionsList.Visible = false
-    optionsList.Parent = dropdownFrame
-    
-    local optionsCorner = Instance.new("UICorner")
-    optionsCorner.CornerRadius = UDim.new(0, 4)
-    optionsCorner.Parent = optionsList
-    
-    local optionsStroke = Instance.new("UIStroke")
-    optionsStroke.Color = Color3.new(0.0863, 0.0863, 0.0863)
-    optionsStroke.Parent = optionsList
-    
-    local isOpen = false
-    local currentSelection = defaultOption or options[1]
-    
-    -- Create option buttons
-    for i, option in ipairs(options) do
-        local optionButton = Instance.new("TextButton")
-        optionButton.Name = name .. "_option_" .. i
-        optionButton.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-        optionButton.TextColor3 = Color3.new(0.498, 0.498, 0.498)
-        optionButton.Text = option
-        optionButton.BackgroundTransparency = 1
-        optionButton.Position = UDim2.new(0, 0, 0, (i-1) * 25)
-        optionButton.Size = UDim2.new(1, 0, 0, 25)
-        optionButton.TextSize = 12
-        optionButton.Parent = optionsList
-        
-        optionButton.MouseButton1Click:Connect(function()
-            currentSelection = option
-            selectedLabel.Text = option
-            isOpen = false
-            optionsList.Visible = false
-            arrowIcon.Image = "rbxassetid://10709790948" -- Down arrow
+            dragStart = input.Position
+            startPos = main.Position
             
-            if callback then
-                callback(option, i)
-            end
-        end)
-        
-        -- Hover effect
-        optionButton.MouseEnter:Connect(function()
-            optionButton.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-        end)
-        
-        optionButton.MouseLeave:Connect(function()
-            optionButton.TextColor3 = Color3.new(0.498, 0.498, 0.498)
-        end)
-    end
-    
-    local function toggleDropdown()
-        isOpen = not isOpen
-        optionsList.Visible = isOpen
-        arrowIcon.Image = isOpen and "rbxassetid://10709791523" or "rbxassetid://10709790948" -- Up/Down arrow
-    end
-    
-    clickButton.MouseButton1Click:Connect(toggleDropdown)
-    
-    return {
-        Frame = dropdownFrame,
-        GetSelection = function() return currentSelection end,
-        SetSelection = function(option) 
-            currentSelection = option
-            selectedLabel.Text = option
-        end,
-        Close = function()
-            isOpen = false
-            optionsList.Visible = false
-            arrowIcon.Image = "rbxassetid://10709790948"
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
-    }
+    end)
+    
+    main.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            if dragging then
+                updateInput(input)
+            end
+        end
+    end)
+    
+    -- Search functionality
+    search_textbox.Focused:Connect(function()
+        if search_textbox.Text == "Search..." then
+            search_textbox.Text = ""
+            search_textbox.TextColor3 = Color3.new(1, 1, 1)
+        end
+    end)
+    
+    search_textbox.FocusLost:Connect(function()
+        if search_textbox.Text == "" then
+            search_textbox.Text = "Search..."
+            search_textbox.TextColor3 = Color3.new(0.392, 0.392, 0.392)
+        end
+    end)
+    
+    -- Window object
+    window.main_ui = main_UI
+    window.main_frame = main
+    window.tabs_frame = tabs_frame
+    window.content_frame = content_frame
+    window.search_textbox = search_textbox
+    
+    function window:CreateTab(name, icon)
+        local tab = {}
+        tab.name = name
+        tab.icon = icon or "rbxassetid://10747830374"
+        tab.elements = {}
+        tab.visible = false
+        
+        -- Create tab button
+        local tab_button = Instance.new("Frame")
+        tab_button.Name = name .. "_Tab"
+        tab_button.BackgroundColor3 = Color3.new(0.0392, 0.0392, 0.0588)
+        tab_button.BackgroundTransparency = 1
+        tab_button.Position = UDim2.new(0.0621, 0, 0.02 + (#window.tabs * 0.12), 0)
+        tab_button.Size = UDim2.new(0, 200, 0, 36)
+        tab_button.Parent = self.tabs_frame
+        
+        local tab_corner = Instance.new("UICorner")
+        tab_corner.CornerRadius = UDim.new(0, 9)
+        tab_corner.Parent = tab_button
+        
+        local tab_stroke = Instance.new("UIStroke")
+        tab_stroke.Color = Color3.new(0.0667, 0.0667, 0.098)
+        tab_stroke.Thickness = 1.2
+        tab_stroke.Parent = tab_button
+        
+        local tab_click_button = Instance.new("TextButton")
+        tab_click_button.Name = "TabClickButton"
+        tab_click_button.Text = ""
+        tab_click_button.BackgroundTransparency = 1
+        tab_click_button.Size = UDim2.new(1, 0, 1, 0)
+        tab_click_button.Parent = tab_button
+        
+        local tab_icon = Instance.new("ImageLabel")
+        tab_icon.Name = "TabIcon"
+        tab_icon.Image = tab.icon
+        tab_icon.BackgroundTransparency = 1
+        tab_icon.Position = UDim2.new(0.05, 0, 0.188, 0)
+        tab_icon.Size = UDim2.new(0, 20, 0, 20)
+        tab_icon.Parent = tab_button
+        
+        local tab_label = Instance.new("TextLabel")
+        tab_label.Name = "TabLabel"
+        tab_label.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+        tab_label.Text = name
+        tab_label.BackgroundTransparency = 1
+        tab_label.Position = UDim2.new(0.185, 0, 0.184, 0)
+        tab_label.Size = UDim2.new(0, 78, 0, 21)
+        tab_label.TextSize = 16
+        tab_label.Parent = tab_button
+        
+        -- Create tab content
+        local tab_content = Instance.new("ScrollingFrame")
+        tab_content.Name = name .. "_Content"
+        tab_content.BackgroundTransparency = 1
+        tab_content.Position = UDim2.new(0, 0, 0, 0)
+        tab_content.Size = UDim2.new(1, 0, 1, 0)
+        tab_content.CanvasSize = UDim2.new(0, 0, 0, 0)
+        tab_content.ScrollBarThickness = 4
+        tab_content.ScrollBarImageColor3 = Color3.new(0.475, 0.451, 0.918)
+        tab_content.Visible = false
+        tab_content.Parent = self.content_frame
+        
+        local content_list = Instance.new("UIListLayout")
+        content_list.SortOrder = Enum.SortOrder.LayoutOrder
+        content_list.Padding = UDim.new(0, 15)
+        content_list.Parent = tab_content
+        
+        -- Tab selection logic
+        local function selectTab()
+            -- Deselect all tabs
+            for _, t in pairs(window.tabs) do
+                t.button.BackgroundTransparency = 1
+                t.label.TextColor3 = Color3.new(1, 1, 1)
+                t.icon.ImageColor3 = Color3.new(1, 1, 1)
+                t.content.Visible = false
+            end
+            
+            -- Select this tab
+            tab_button.BackgroundTransparency = 0
+            tab_label.TextColor3 = Color3.new(0.475, 0.451, 0.902)
+            tab_icon.ImageColor3 = Color3.new(0.435, 0.416, 0.831)
+            tab_content.Visible = true
+            window.currentTab = tab
+        end
+        
+        tab_click_button.MouseButton1Click:Connect(selectTab)
+        
+        -- Set as first tab if none selected
+        if #window.tabs == 0 then
+            selectTab()
+        end
+        
+        tab.button = tab_button
+        tab.content = tab_content
+        tab.label = tab_label
+        tab.icon = tab_icon
+        tab.list_layout = content_list
+        
+        -- Tab element creation functions
+        function tab:CreateSection(name)
+            local section = {}
+            
+            local section_frame = Instance.new("Frame")
+            section_frame.Name = name .. "_Section"
+            section_frame.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
+            section_frame.Size = UDim2.new(1, -20, 0, 200)
+            section_frame.Parent = self.content
+            
+            local section_corner = Instance.new("UICorner")
+            section_corner.Parent = section_frame
+            
+            local section_stroke = Instance.new("UIStroke")
+            section_stroke.Color = Color3.new(0.0902, 0.0902, 0.114)
+            section_stroke.Parent = section_frame
+            
+            local elements_frame = Instance.new("Frame")
+            elements_frame.Name = "ElementsFrame"
+            elements_frame.BackgroundTransparency = 1
+            elements_frame.Position = UDim2.new(0, 10, 0, 10)
+            elements_frame.Size = UDim2.new(1, -20, 1, -20)
+            elements_frame.Parent = section_frame
+            
+            local elements_list = Instance.new("UIListLayout")
+            elements_list.SortOrder = Enum.SortOrder.LayoutOrder
+            elements_list.Padding = UDim.new(0, 8)
+            elements_list.Parent = elements_frame
+            
+            section.frame = section_frame
+            section.elements_frame = elements_frame
+            section.elements_list = elements_list
+            
+            -- Auto-resize section
+            local function updateSize()
+                local contentSize = elements_list.AbsoluteContentSize.Y
+                section_frame.Size = UDim2.new(1, -20, 0, contentSize + 20)
+                -- Update canvas size
+                tab_content.CanvasSize = UDim2.new(0, 0, 0, content_list.AbsoluteContentSize.Y)
+            end
+            
+            elements_list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateSize)
+            
+            function section:CreateToggle(name, description, default, callback)
+                callback = callback or function() end
+                local toggled = default or false
+                
+                local toggle_frame = Instance.new("Frame")
+                toggle_frame.Name = name .. "_Toggle"
+                toggle_frame.BackgroundTransparency = 1
+                toggle_frame.Size = UDim2.new(1, 0, 0, 50)
+                toggle_frame.Parent = self.elements_frame
+                
+                local toggle_title = Instance.new("TextLabel")
+                toggle_title.Name = "Title"
+                toggle_title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                toggle_title.TextColor3 = Color3.new(1, 1, 1)
+                toggle_title.Text = name
+                toggle_title.BackgroundTransparency = 1
+                toggle_title.Position = UDim2.new(0, 0, 0, 0)
+                toggle_title.Size = UDim2.new(1, -50, 0, 20)
+                toggle_title.TextSize = 15
+                toggle_title.TextXAlignment = Enum.TextXAlignment.Left
+                toggle_title.Parent = toggle_frame
+                
+                local toggle_desc = Instance.new("TextLabel")
+                toggle_desc.Name = "Description"
+                toggle_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                toggle_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
+                toggle_desc.Text = description or "Description"
+                toggle_desc.BackgroundTransparency = 1
+                toggle_desc.Position = UDim2.new(0, 0, 0, 20)
+                toggle_desc.Size = UDim2.new(1, -50, 0, 17)
+                toggle_desc.TextSize = 14
+                toggle_desc.TextXAlignment = Enum.TextXAlignment.Left
+                toggle_desc.Parent = toggle_frame
+                
+                local toggle_button = Instance.new("Frame")
+                toggle_button.Name = "ToggleButton"
+                toggle_button.BackgroundColor3 = toggled and Color3.new(0.475, 0.451, 0.918) or Color3.new(0.0902, 0.0863, 0.125)
+                toggle_button.Position = UDim2.new(1, -40, 0, 15)
+                toggle_button.Size = UDim2.new(0, 36, 0, 20)
+                toggle_button.Parent = toggle_frame
+                
+                local toggle_corner = Instance.new("UICorner")
+                toggle_corner.CornerRadius = UDim.new(0, 9)
+                toggle_corner.Parent = toggle_button
+                
+                local toggle_switch = Instance.new("Frame")
+                toggle_switch.Name = "Switch"
+                toggle_switch.BackgroundColor3 = Color3.new(1, 1, 1)
+                toggle_switch.Position = toggled and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 6, 0, 5)
+                toggle_switch.Size = UDim2.new(0, 10, 0, 10)
+                toggle_switch.Parent = toggle_button
+                
+                local switch_corner = Instance.new("UICorner")
+                switch_corner.Parent = toggle_switch
+                
+                local toggle_click = Instance.new("TextButton")
+                toggle_click.Name = "ToggleClick"
+                toggle_click.Text = ""
+                toggle_click.BackgroundTransparency = 1
+                toggle_click.Size = UDim2.new(1, 0, 1, 0)
+                toggle_click.Parent = toggle_button
+                
+                local function updateToggle()
+                    local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                    local colorTween = createTween(toggle_button, tweenInfo, {
+                        BackgroundColor3 = toggled and Color3.new(0.475, 0.451, 0.918) or Color3.new(0.0902, 0.0863, 0.125)
+                    })
+                    local positionTween = createTween(toggle_switch, tweenInfo, {
+                        Position = toggled and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 6, 0, 5)
+                    })
+                    colorTween:Play()
+                    positionTween:Play()
+                    callback(toggled)
+                end
+                
+                toggle_click.MouseButton1Click:Connect(function()
+                    toggled = not toggled
+                    updateToggle()
+                end)
+                
+                updateToggle()
+                
+                return {
+                    SetValue = function(value)
+                        toggled = value
+                        updateToggle()
+                    end,
+                    GetValue = function()
+                        return toggled
+                    end
+                }
+            end
+            
+            function section:CreateSlider(name, description, min, max, default, callback)
+                callback = callback or function() end
+                min = min or 0
+                max = max or 100
+                local value = default or min
+                
+                local slider_frame = Instance.new("Frame")
+                slider_frame.Name = name .. "_Slider"
+                slider_frame.BackgroundTransparency = 1
+                slider_frame.Size = UDim2.new(1, 0, 0, 60)
+                slider_frame.Parent = self.elements_frame
+                
+                local slider_title = Instance.new("TextLabel")
+                slider_title.Name = "Title"
+                slider_title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                slider_title.TextColor3 = Color3.new(1, 1, 1)
+                slider_title.Text = name
+                slider_title.BackgroundTransparency = 1
+                slider_title.Position = UDim2.new(0, 0, 0, 0)
+                slider_title.Size = UDim2.new(0.7, 0, 0, 20)
+                slider_title.TextSize = 15
+                slider_title.TextXAlignment = Enum.TextXAlignment.Left
+                slider_title.Parent = slider_frame
+                
+                local slider_value = Instance.new("TextLabel")
+                slider_value.Name = "Value"
+                slider_value.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                slider_value.TextColor3 = Color3.new(1, 1, 1)
+                slider_value.Text = tostring(value)
+                slider_value.BackgroundTransparency = 1
+                slider_value.Position = UDim2.new(0.7, 0, 0, 0)
+                slider_value.Size = UDim2.new(0.3, 0, 0, 20)
+                slider_value.TextSize = 14
+                slider_value.TextXAlignment = Enum.TextXAlignment.Right
+                slider_value.Parent = slider_frame
+                
+                local slider_desc = Instance.new("TextLabel")
+                slider_desc.Name = "Description"
+                slider_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                slider_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
+                slider_desc.Text = description or "Description"
+                slider_desc.BackgroundTransparency = 1
+                slider_desc.Position = UDim2.new(0, 0, 0, 20)
+                slider_desc.Size = UDim2.new(1, 0, 0, 17)
+                slider_desc.TextSize = 14
+                slider_desc.TextXAlignment = Enum.TextXAlignment.Left
+                slider_desc.Parent = slider_frame
+                
+                local slider_background = Instance.new("Frame")
+                slider_background.Name = "SliderBackground"
+                slider_background.BackgroundColor3 = Color3.new(0.0902, 0.0863, 0.125)
+                slider_background.Position = UDim2.new(0, 0, 0, 40)
+                slider_background.Size = UDim2.new(1, 0, 0, 7)
+                slider_background.BorderSizePixel = 0
+                slider_background.Parent = slider_frame
+                
+                local background_corner = Instance.new("UICorner")
+                background_corner.CornerRadius = UDim.new(0, 3)
+                background_corner.Parent = slider_background
+                
+                local slider_fill = Instance.new("Frame")
+                slider_fill.Name = "SliderFill"
+                slider_fill.BackgroundColor3 = Color3.new(0.475, 0.451, 0.918)
+                slider_fill.Position = UDim2.new(0, 0, 0, 0)
+                slider_fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+                slider_fill.BorderSizePixel = 0
+                slider_fill.Parent = slider_background
+                
+                local fill_corner = Instance.new("UICorner")
+                fill_corner.CornerRadius = UDim.new(0, 3)
+                fill_corner.Parent = slider_fill
+                
+                local slider_button = Instance.new("Frame")
+                slider_button.Name = "SliderButton"
+                slider_button.BackgroundColor3 = Color3.new(1, 1, 1)
+                slider_button.Position = UDim2.new((value - min) / (max - min), -5, 0, -2)
+                slider_button.Size = UDim2.new(0, 11, 0, 11)
+                slider_button.BorderSizePixel = 0
+                slider_button.Parent = slider_background
+                
+                local button_corner = Instance.new("UICorner")
+                button_corner.CornerRadius = UDim.new(0, 3)
+                button_corner.Parent = slider_button
+                
+                local slider_input = Instance.new("TextButton")
+                slider_input.Name = "SliderInput"
+                slider_input.Text = ""
+                slider_input.BackgroundTransparency = 1
+                slider_input.Size = UDim2.new(1, 0, 1, 0)
+                slider_input.Parent = slider_background
+                
+                local dragging = false
+                
+                local function updateSlider(input)
+                    local mouse = input or UserInputService:GetMouseLocation()
+                    local relativeX = mouse.X - slider_background.AbsolutePosition.X
+                    local percentage = math.clamp(relativeX / slider_background.AbsoluteSize.X, 0, 1)
+                    value = math.floor(min + (max - min) * percentage)
+                    
+                    slider_value.Text = tostring(value)
+                    slider_fill.Size = UDim2.new(percentage, 0, 1, 0)
+                    slider_button.Position = UDim2.new(percentage, -5, 0, -2)
+                    
+                    callback(value)
+                end
+                
+                slider_input.MouseButton1Down:Connect(function()
+                    dragging = true
+                    updateSlider()
+                end)
+                
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateSlider()
+                    end
+                end)
+                
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+                
+                return {
+                    SetValue = function(newValue)
+                        value = math.clamp(newValue, min, max)
+                        slider_value.Text = tostring(value)
+                        local percentage = (value - min) / (max - min)
+                        slider_fill.Size = UDim2.new(percentage, 0, 1, 0)
+                        slider_button.Position = UDim2.new(percentage, -5, 0, -2)
+                        callback(value)
+                    end,
+                    GetValue = function()
+                        return value
+                    end
+                }
+            end
+            
+            function section:CreateDropdown(name, description, options, default, callback)
+                callback = callback or function() end
+                options = options or {"Option 1", "Option 2", "Option 3"}
+                local selected = default or options[1]
+                local isOpen = false
+                
+                local dropdown_frame = Instance.new("Frame")
+                dropdown_frame.Name = name .. "_Dropdown"
+                dropdown_frame.BackgroundTransparency = 1
+                dropdown_frame.Size = UDim2.new(1, 0, 0, 50)
+                dropdown_frame.Parent = self.elements_frame
+                
+                local dropdown_title = Instance.new("TextLabel")
+                dropdown_title.Name = "Title"
+                dropdown_title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                dropdown_title.TextColor3 = Color3.new(1, 1, 1)
+                dropdown_title.Text = name
+                dropdown_title.BackgroundTransparency = 1
+                dropdown_title.Position = UDim2.new(0, 0, 0, 0)
+                dropdown_title.Size = UDim2.new(0.6, 0, 0, 20)
+                dropdown_title.TextSize = 15
+                dropdown_title.TextXAlignment = Enum.TextXAlignment.Left
+                dropdown_title.Parent = dropdown_frame
+                
+                local dropdown_desc = Instance.new("TextLabel")
+                dropdown_desc.Name = "Description"
+                dropdown_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                dropdown_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
+                dropdown_desc.Text = description or "Description"
+                dropdown_desc.BackgroundTransparency = 1
+                dropdown_desc.Position = UDim2.new(0, 0, 0, 20)
+                dropdown_desc.Size = UDim2.new(0.6, 0, 0, 17)
+                dropdown_desc.TextSize = 14
+                dropdown_desc.TextXAlignment = Enum.TextXAlignment.Left
+                dropdown_desc.Parent = dropdown_frame
+                
+                local dropdown_button = Instance.new("Frame")
+                dropdown_button.Name = "DropdownButton"
+                dropdown_button.BackgroundColor3 = Color3.new(0.0627, 0.0588, 0.0863)
+                dropdown_button.Position = UDim2.new(0.6, 10, 0, 10)
+                dropdown_button.Size = UDim2.new(0, 120, 0, 29)
+                dropdown_button.Parent = dropdown_frame
+                
+                local dropdown_corner = Instance.new("UICorner")
+                dropdown_corner.CornerRadius = UDim.new(0, 4)
+                dropdown_corner.Parent = dropdown_button
+                
+                local dropdown_stroke = Instance.new("UIStroke")
+                dropdown_stroke.Color = Color3.new(0.0863, 0.0863, 0.0863)
+                dropdown_stroke.Parent = dropdown_button
+                
+                local dropdown_label = Instance.new("TextLabel")
+                dropdown_label.Name = "Label"
+                dropdown_label.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                dropdown_label.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+                dropdown_label.Text = selected
+                dropdown_label.BackgroundTransparency = 1
+                dropdown_label.Position = UDim2.new(0, 5, 0, 0)
+                dropdown_label.Size = UDim2.new(0.8, 0, 1, 0)
+                dropdown_label.TextSize = 12
+                dropdown_label.TextXAlignment = Enum.TextXAlignment.Left
+                dropdown_label.Parent = dropdown_button
+                
+                local dropdown_arrow = Instance.new("ImageLabel")
+                dropdown_arrow.Name = "Arrow"
+                dropdown_arrow.Image = isOpen and "rbxassetid://10709791523" or "rbxassetid://10709790948"
+                dropdown_arrow.BackgroundTransparency = 1
+                dropdown_arrow.Position = UDim2.new(0.85, 0, 0.25, 0)
+                dropdown_arrow.Size = UDim2.new(0, 15, 0, 15)
+                dropdown_arrow.Parent = dropdown_button
+                
+                local dropdown_click = Instance.new("TextButton")
+                dropdown_click.Name = "DropdownClick"
+                dropdown_click.Text = ""
+                dropdown_click.BackgroundTransparency = 1
+                dropdown_click.Size = UDim2.new(1, 0, 1, 0)
+                dropdown_click.Parent = dropdown_button
+                
+                local dropdown_list = Instance.new("Frame")
+                dropdown_list.Name = "DropdownList"
+                dropdown_list.BackgroundColor3 = Color3.new(0.0627, 0.0588, 0.0863)
+                dropdown_list.Position = UDim2.new(0, 0, 1, 5)
+                dropdown_list.Size = UDim2.new(1, 0, 0, #options * 25)
+                dropdown_list.Visible = false
+                dropdown_list.Parent = dropdown_button
+                dropdown_list.ZIndex = 10
+                
+                local list_corner = Instance.new("UICorner")
+                list_corner.CornerRadius = UDim.new(0, 4)
+                list_corner.Parent = dropdown_list
+                
+                local list_stroke = Instance.new("UIStroke")
+                list_stroke.Color = Color3.new(0.0863, 0.0863, 0.0863)
+                list_stroke.Parent = dropdown_list
+                
+                local list_layout = Instance.new("UIListLayout")
+                list_layout.SortOrder = Enum.SortOrder.LayoutOrder
+                list_layout.Parent = dropdown_list
+                
+                local function toggleDropdown()
+                    isOpen = not isOpen
+                    dropdown_list.Visible = isOpen
+                    dropdown_arrow.Image = isOpen and "rbxassetid://10709791523" or "rbxassetid://10709790948"
+                    
+                    if isOpen then
+                        dropdown_frame.Size = UDim2.new(1, 0, 0, 50 + (#options * 25) + 10)
+                    else
+                        dropdown_frame.Size = UDim2.new(1, 0, 0, 50)
+                    end
+                end
+                
+                dropdown_click.MouseButton1Click:Connect(toggleDropdown)
+                
+                for i, option in ipairs(options) do
+                    local option_button = Instance.new("TextButton")
+                    option_button.Name = "Option_" .. i
+                    option_button.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                    option_button.TextColor3 = Color3.new(0.498, 0.498, 0.498)
+                    option_button.Text = option
+                    option_button.BackgroundTransparency = 1
+                    option_button.Size = UDim2.new(1, 0, 0, 25)
+                    option_button.TextSize = 12
+                    option_button.TextXAlignment = Enum.TextXAlignment.Left
+                    option_button.Parent = dropdown_list
+                    
+                    option_button.MouseButton1Click:Connect(function()
+                        selected = option
+                        dropdown_label.Text = selected
+                        toggleDropdown()
+                        callback(selected)
+                    end)
+                    
+                    option_button.MouseEnter:Connect(function()
+                        option_button.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+                    end)
+                    
+                    option_button.MouseLeave:Connect(function()
+                        option_button.TextColor3 = Color3.new(0.498, 0.498, 0.498)
+                    end)
+                end
+                
+                return {
+                    SetValue = function(value)
+                        selected = value
+                        dropdown_label.Text = selected
+                        callback(selected)
+                    end,
+                    GetValue = function()
+                        return selected
+                    end,
+                    SetOptions = function(newOptions)
+                        options = newOptions
+                        dropdown_list:ClearAllChildren()
+                        
+                        local new_layout = Instance.new("UIListLayout")
+                        new_layout.SortOrder = Enum.SortOrder.LayoutOrder
+                        new_layout.Parent = dropdown_list
+                        
+                        dropdown_list.Size = UDim2.new(1, 0, 0, #options * 25)
+                        
+                        for i, option in ipairs(options) do
+                            local option_button = Instance.new("TextButton")
+                            option_button.Name = "Option_" .. i
+                            option_button.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                            option_button.TextColor3 = Color3.new(0.498, 0.498, 0.498)
+                            option_button.Text = option
+                            option_button.BackgroundTransparency = 1
+                            option_button.Size = UDim2.new(1, 0, 0, 25)
+                            option_button.TextSize = 12
+                            option_button.TextXAlignment = Enum.TextXAlignment.Left
+                            option_button.Parent = dropdown_list
+                            
+                            option_button.MouseButton1Click:Connect(function()
+                                selected = option
+                                dropdown_label.Text = selected
+                                toggleDropdown()
+                                callback(selected)
+                            end)
+                            
+                            option_button.MouseEnter:Connect(function()
+                                option_button.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+                            end)
+                            
+                            option_button.MouseLeave:Connect(function()
+                                option_button.TextColor3 = Color3.new(0.498, 0.498, 0.498)
+                            end)
+                        end
+                    end
+                }
+            end
+            
+            function section:CreateColorPicker(name, description, default, callback)
+                callback = callback or function() end
+                local color = default or Color3.new(0.647, 0.169, 0.647)
+                
+                local colorpicker_frame = Instance.new("Frame")
+                colorpicker_frame.Name = name .. "_ColorPicker"
+                colorpicker_frame.BackgroundTransparency = 1
+                colorpicker_frame.Size = UDim2.new(1, 0, 0, 50)
+                colorpicker_frame.Parent = self.elements_frame
+                
+                local colorpicker_title = Instance.new("TextLabel")
+                colorpicker_title.Name = "Title"
+                colorpicker_title.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                colorpicker_title.TextColor3 = Color3.new(1, 1, 1)
+                colorpicker_title.Text = name
+                colorpicker_title.BackgroundTransparency = 1
+                colorpicker_title.Position = UDim2.new(0, 0, 0, 0)
+                colorpicker_title.Size = UDim2.new(0.7, 0, 0, 20)
+                colorpicker_title.TextSize = 15
+                colorpicker_title.TextXAlignment = Enum.TextXAlignment.Left
+                colorpicker_title.Parent = colorpicker_frame
+                
+                local colorpicker_desc = Instance.new("TextLabel")
+                colorpicker_desc.Name = "Description"
+                colorpicker_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
+                colorpicker_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
+                colorpicker_desc.Text = description or "Description"
+                colorpicker_desc.BackgroundTransparency = 1
+                colorpicker_desc.Position = UDim2.new(0, 0, 0, 20)
+                colorpicker_desc.Size = UDim2.new(0.7, 0, 0, 17)
+                colorpicker_desc.TextSize = 14
+                colorpicker_desc.TextXAlignment = Enum.TextXAlignment.Left
+                colorpicker_desc.Parent = colorpicker_frame
+                
+                local color_button = Instance.new("Frame")
+                color_button.Name = "ColorButton"
+                color_button.BackgroundColor3 = color
+                color_button.Position = UDim2.new(0.7, 10, 0, 7.5)
+                color_button.Size = UDim2.new(0, 35, 0, 35)
+                color_button.Parent = colorpicker_frame
+                
+                local color_corner = Instance.new("UICorner")
+                color_corner.CornerRadius = UDim.new(0, 5)
+                color_corner.Parent = color_button
+                
+                local color_click = Instance.new("TextButton")
+                color_click.Name = "ColorClick"
+                color_click.Text = ""
+                color_click.BackgroundTransparency = 1
+                color_click.Size = UDim2.new(1, 0, 1, 0)
+                color_click.Parent = color_button
+                
+                -- Simple color picker (cycles through predefined colors for demo)
+                local colors = {
+                    Color3.new(0.647, 0.169, 0.647), -- Purple
+                    Color3.new(0.169, 0.647, 0.169), -- Green
+                    Color3.new(0.647, 0.169, 0.169), -- Red
+                    Color3.new(0.169, 0.169, 0.647), -- Blue
+                    Color3.new(0.647, 0.647, 0.169), -- Yellow
+                    Color3.new(0.647, 0.400, 0.169), -- Orange
+                }
+                local colorIndex = 1
+                
+                color_click.MouseButton1Click:Connect(function()
+                    colorIndex = colorIndex % #colors + 1
+                    color = colors[colorIndex]
+                    color_button.BackgroundColor3 = color
+                    callback(color)
+                end)
+                
+                return {
+                    SetValue = function(newColor)
+                        color = newColor
+                        color_button.BackgroundColor3 = color
+                        callback(color)
+                    end,
+                    GetValue = function()
+                        return color
+                    end
+                }
+            end
+            
+            return section
+        end
+        
+        table.insert(window.tabs, tab)
+        return tab
+    end
+    
+    return window
 end
 
--- Continue with your existing UI structure and add these functional components
-local uIStroke_2 = Instance.new("UIStroke")
-uIStroke_2.Color = Color3.new(0.0667, 0.0667, 0.0824)
-uIStroke_2.Parent = main
-
-local module_1_right_section = Instance.new("Frame")
-module_1_right_section.Name = "Module 1 ( right section)"
-module_1_right_section.BackgroundColor3 = Color3.new(0.0196, 0.0196, 0.0314)
-module_1_right_section.Position = UDim2.new(0.328, 0, 0.174, 0)
-module_1_right_section.BorderColor3 = Color3.new()
-module_1_right_section.BorderSizePixel = 0
-module_1_right_section.Size = UDim2.new(0, 262, 0, 226)
-module_1_right_section.Parent = main
-
-local module1Corner = Instance.new("UICorner")
-module1Corner.Parent = module_1_right_section
-
-local module1Stroke = Instance.new("UIStroke")
-module1Stroke.Color = Color3.new(0.0902, 0.0902, 0.114)
-module1Stroke.Parent = module_1_right_section
-
--- Add functional components to the module
--- Toggle
-local toggle_text = Instance.new("TextLabel")
-toggle_text.Name = "Toggle text"
-toggle_text.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-toggle_text.TextColor3 = Color3.new(1, 1, 1)
-toggle_text.Text = "Toggle"
-toggle_text.BackgroundTransparency = 1
-toggle_text.Position = UDim2.new(0, 0, 0.04, 0)
-toggle_text.Size = UDim2.new(0, 87, 0, 21)
-toggle_text.TextSize = 15
-toggle_text.Parent = module_1_right_section
-
-local mainToggle = createToggle(module_1_right_section, "main_toggle", false, function(state)
-    print("Toggle state:", state)
-end)
-mainToggle.Frame.Position = UDim2.new(0.802, 0, 0.0725, 0)
-
-local toggle_desc = Instance.new("TextLabel")
-toggle_desc.Name = "Toggle description"
-toggle_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-toggle_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
-toggle_desc.Text = "Description"
-toggle_desc.BackgroundTransparency = 1
-toggle_desc.Position = UDim2.new(0.007, 0, 0.125, 0)
-toggle_desc.Size = UDim2.new(0, 99, 0, 17)
-toggle_desc.TextSize = 15
-toggle_desc.Parent = module_1_right_section
-
--- Separator
-local separator1 = Instance.new("Frame")
-separator1.BackgroundColor3 = Color3.new(0.0902, 0.0902, 0.114)
-separator1.Position = UDim2.new(0.0595, 0, 0.242, 0)
-separator1.BorderSizePixel = 0
-separator1.Size = UDim2.new(0, 237, 0, 1)
-separator1.Parent = module_1_right_section
-
--- Slider
-local slider_text = Instance.new("TextLabel")
-slider_text.Name = "Slider text"
-slider_text.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-slider_text.TextColor3 = Color3.new(0.992, 0.992, 0.992)
-slider_text.Text = "Slider"
-slider_text.BackgroundTransparency = 1
-slider_text.Position = UDim2.new(0.008, 0, 0.282, 0)
-slider_text.Size = UDim2.new(0, 79, 0, 14)
-slider_text.TextSize = 15
-slider_text.Parent = module_1_right_section
-
-local slider_desc = Instance.new("TextLabel")
-slider_desc.Name = "Slider description"
-slider_desc.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontStyle.Normal, Enum.FontWeight.SemiBold)
-slider_desc.TextColor3 = Color3.new(0.42, 0.42, 0.424)
-slider_desc.Text = "Description"
-slider_desc.BackgroundTransparency = 1
-slider_desc.Position = UDim2.new(0.011, 0, 0.348, 0)
-slider_desc.Size = UDim2.new(0, 99, 0, 17)
-slider_desc.TextSize = 15
-slider_desc.Parent = module_1_right_section
-
-local mainSlider = createSlider(module_1_right_section, "main_slider", 0, 100, 50, function(value)
-    print("Slider value:", value)
-end)
-mainSlider.Frame.Position = UDim2.new(0.064, 0, 0.464, 0)
-
--- Add minimize/maximize functionality
-minimized_ui.Visible = false
-
-local function minimize()
-    isMinimized = true
-    main.Visible = false
-    minimized_ui.Visible = true
-end
-
-local function maximize()
-    isMinimized = false
-    main.Visible = true
-    minimized_ui.Visible = false
-end
-
--- Add minimize button functionality (you'll need to add this to your existing close button)
-unminize_button.MouseButton1Click:Connect(maximize)
-
--- Example of adding a dropdown to the second module
-wait(1) -- Let UI load
-
--- Create a test dropdown with options
-local testOptions = {"Option 1", "Option 2", "Option 3"}
-local testDropdown = createDropdown(main, "test_dropdown", testOptions, "Option 1", function(selection, index)
-    print("Selected:", selection, "Index:", index)
-end)
-testDropdown.Frame.Position = UDim2.new(0.75, 0, 0.25, 0)
-
-print("UI Library loaded with functional components!")
+return Library
